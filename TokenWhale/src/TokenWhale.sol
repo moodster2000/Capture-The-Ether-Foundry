@@ -52,9 +52,9 @@ contract TokenWhale {
     }
 
     function transferFrom(address from, address to, uint256 value) public {
-        require(balanceOf[from] >= value);
-        require(balanceOf[to] + value >= balanceOf[to]);
-        require(allowance[from][msg.sender] >= value);
+        require(balanceOf[from] >= value, "A");
+        require(balanceOf[to] + value >= balanceOf[to], "B");
+        require(allowance[from][msg.sender] >= value, "C");
 
         allowance[from][msg.sender] -= value;
         _transfer(to, value);

